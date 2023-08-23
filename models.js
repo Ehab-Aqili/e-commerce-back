@@ -8,9 +8,7 @@ function createUsersTable() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT NOT NULL,
       email TEXT NOT NULL,
-      password TEXT NOT NULL,
-      favproducts TEXT,
-      orders TEXT
+      password TEXT NOT NULL
     );
   `;
 
@@ -91,10 +89,10 @@ function addUser(username, email, password, callback) {
         callback(new Error("User already exists"));
       } else {
         const insertQuery = `
-          INSERT INTO users (username, email, password, favproducts, orders)
-          VALUES (?, ?, ?, ?, ?);
+          INSERT INTO users (username, email, password)
+          VALUES (?, ?, ?);
         `;
-        db.run(insertQuery, [username, email, password, null, null], function (err) {
+        db.run(insertQuery, [username, email, password], function (err) {
           if (err) {
             callback(err);
           } else {
@@ -116,7 +114,7 @@ function addOrder(userID, callback) {
     if (err) {
       callback(err, null);
     } else {
-      const orderID = this.lastID
+      const orderID = this.lastID;
       callback(null, orderID);
     }
   });
@@ -139,24 +137,34 @@ function addOrderDetail(orderID, productID, quantity, callback) {
 function deleteOrder(orderID, userID, callback) {
   db.run("BEGIN TRANSACTION");
 
-  db.run("DELETE FROM order_details WHERE OrderID = ?", [orderID], handleDelete);
+  db.run(
+    "DELETE FROM order_details WHERE OrderID = ?",
+    [orderID],
+    handleDelete
+  );
 
   function handleDelete(err) {
     if (err) {
       return rollbackAndCallback(err);
     }
 
-    db.run("DELETE FROM orders WHERE OrderID = ? AND UserID = ?", [orderID, userID], function (err) {
-      if (err) {
-        return rollbackAndCallback(err);
-      }
+    db.run(
+      "DELETE FROM orders WHERE OrderID = ? AND UserID = ?",
+      [orderID, userID],
+      function (err) {
+        if (err) {
+          return rollbackAndCallback(err);
+        }
 
-      if (this.changes === 0) {
-        return rollbackAndCallback(new Error("Order not found for this user."));
-      }
+        if (this.changes === 0) {
+          return rollbackAndCallback(
+            new Error("Order not found for this user.")
+          );
+        }
 
-      db.run("COMMIT", callback);
-    });
+        db.run("COMMIT", callback);
+      }
+    );
   }
 
   function rollbackAndCallback(err) {
