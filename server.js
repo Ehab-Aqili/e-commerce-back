@@ -20,9 +20,7 @@ app.use("/products", productRoutes);
 
 createUsersTable();
 createProductsTable();
-
 createOrdersTable();
-
 createOrderDetailsTable();
 
 app.listen(PORT, () => {

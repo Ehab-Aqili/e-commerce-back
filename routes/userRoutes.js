@@ -4,17 +4,15 @@ const {
   UserController,
   newUser,
   userNewOrder,
-  newOrderDetails,
   deleteOrderFromCarts,
 } = require("../controllers/userController");
 
 const router = express.Router();
 
 // Define your user routes here
-router.get("/:id", UserController);
-router.post("/add-user", newUser);
-router.post("/add-order", userNewOrder);
-router.post("/add-order-details", newOrderDetails);
-router.delete("/delete-order", deleteOrderFromCarts);
+router.get("/", UserController); // login
+router.post("/add-user", newUser); // sign up
+router.post("/add-order", userNewOrder); // order and details
+router.delete("/delete-order", deleteOrderFromCarts); // complete order
 
 module.exports = router;

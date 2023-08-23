@@ -16,7 +16,6 @@ function createUsersTable() {
 
   db.run(query);
 }
-
 function createProductsTable() {
   const query = `
     CREATE TABLE IF NOT EXISTS products (
@@ -43,7 +42,6 @@ function createOrdersTable() {
 
   db.run(query);
 }
-
 function createOrderDetailsTable() {
   const query = `
     CREATE TABLE IF NOT EXISTS order_details (
@@ -57,7 +55,6 @@ function createOrderDetailsTable() {
 
   db.run(query);
 }
-
 function getAllProducts(callback) {
   const query = `SELECT * FROM products;`;
 
@@ -69,10 +66,9 @@ function getAllProducts(callback) {
     }
   });
 }
-
-function getUser(id, callback) {
-  const query = "SELECT * FROM users WHERE email = ?";
-  db.all(query, [id], (err, user) => {
+function getUser(email, password, callback) {
+  const query = "SELECT * FROM users WHERE email = ? AND password = ? ";
+  db.all(query, [email, password], (err, user) => {
     if (err) {
       callback(err, null);
     } else {
@@ -80,37 +76,36 @@ function getUser(id, callback) {
     }
   });
 }
-
 function addUser(username, email, password, callback) {
-  const query = `
-    INSERT INTO users (username, email, password, favproducts, orders)
-    VALUES (?, ?, ?, ?, ?);
+  // Check if the user already exists based on username or email
+  const checkQuery = `
+    SELECT COUNT(*) as count FROM users
+    WHERE username = ? OR email = ?;
   `;
 
-  db.run(query, [username, email, password, null, null], function (err) {
+  db.get(checkQuery, [username, email], function (err, result) {
     if (err) {
       callback(err);
     } else {
-      const userId = this.lastID;
-      callback(null, userId);
+      if (result.count > 0) {
+        callback(new Error("User already exists"));
+      } else {
+        const insertQuery = `
+          INSERT INTO users (username, email, password, favproducts, orders)
+          VALUES (?, ?, ?, ?, ?);
+        `;
+        db.run(insertQuery, [username, email, password, null, null], function (err) {
+          if (err) {
+            callback(err);
+          } else {
+            const userId = this.lastID;
+            callback(null, userId);
+          }
+        });
+      }
     }
   });
 }
-
-// function userNewOrder(userId, productId, callback) {
-//   const query = `
-//     INSERT INTO orders (id, productID, userID)
-//     VALUES (?, ?, ?);
-//   `;
-//   db.run(query, [userId, productId, userId], function (err) {
-//     if (err) {
-//       callback(err, null);
-//     } else {
-//       callback(null, userId); // Return the ID of the newly inserted order
-//     }
-//   });
-// }
-
 function addOrder(userID, callback) {
   const query = `
     INSERT INTO orders (UserID)
@@ -121,11 +116,11 @@ function addOrder(userID, callback) {
     if (err) {
       callback(err, null);
     } else {
-      callback(null, userID);
+      const orderID = this.lastID
+      callback(null, orderID);
     }
   });
 }
-
 function addOrderDetail(orderID, productID, quantity, callback) {
   const query = `
     INSERT INTO order_details (OrderID, ProductID, Quantity)
@@ -141,7 +136,6 @@ function addOrderDetail(orderID, productID, quantity, callback) {
     }
   });
 }
-
 function deleteOrder(orderID, userID, callback) {
   db.run("BEGIN TRANSACTION");
 
@@ -169,8 +163,6 @@ function deleteOrder(orderID, userID, callback) {
     db.run("ROLLBACK", () => callback(err));
   }
 }
-
-
 module.exports = {
   createUsersTable,
   createProductsTable,
