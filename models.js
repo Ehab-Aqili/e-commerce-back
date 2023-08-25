@@ -171,6 +171,33 @@ function deleteOrder(orderID, userID, callback) {
     db.run("ROLLBACK", () => callback(err));
   }
 }
+
+function getOrdersForUser(userID, callback) {
+  // Your SQL query to retrieve orders and details for a specific user
+  const query = `
+    SELECT
+      o.OrderID,
+      o.OrderDate,
+      od.OrderDetailID,
+      od.ProductID,
+      od.Quantity
+    FROM
+      orders o
+    LEFT JOIN
+      order_details od ON o.OrderID = od.OrderID
+    WHERE
+      o.UserID = ?;
+  `;
+
+  db.all(query, [userID], function (err, rows) {
+    if (err) {
+      callback(err, null);
+    } else {
+      callback(null, rows);
+    }
+  });
+}
+
 module.exports = {
   createUsersTable,
   createProductsTable,
@@ -182,4 +209,5 @@ module.exports = {
   addOrder,
   addOrderDetail,
   deleteOrder,
+  getOrdersForUser,
 };

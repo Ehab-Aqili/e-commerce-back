@@ -5,6 +5,7 @@ const {
   newUser,
   userNewOrder,
   deleteOrderFromCarts,
+  getOrdersForSpecificUser,
 } = require("../controllers/userController");
 
 const router = express.Router();
@@ -13,6 +14,7 @@ const router = express.Router();
 router.post("/", UserController); // login
 router.post("/add-user", newUser); // sign up
 router.post("/add-order", userNewOrder); // order and details
-router.delete("/delete-order", deleteOrderFromCarts); // complete order
+router.delete("/delete-order", deleteOrderFromCarts);
+router.get("/get-order/:id", getOrdersForSpecificUser);
 
 module.exports = router;

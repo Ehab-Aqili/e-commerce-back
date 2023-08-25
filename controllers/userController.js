@@ -4,6 +4,7 @@ const {
   addOrder,
   addOrderDetail,
   deleteOrder,
+  getOrdersForUser,
 } = require("../models");
 
 const newUser = (req, res) => {
@@ -11,7 +12,7 @@ const newUser = (req, res) => {
   addUser(username, email, password, (err, user) => {
     if (err) {
       console.error(err);
-      res.status(500).json({err:"User Already Exist Try Another Email"});
+      res.status(500).json({ err: "User Already Exist Try Another Email" });
     } else {
       res.json(user);
     }
@@ -60,9 +61,25 @@ const deleteOrderFromCarts = (req, res) => {
     }
   });
 };
+
+const getOrdersForSpecificUser = (req, res) => {
+  const userID = req.params.id;
+
+  getOrdersForUser(userID, (err, userOrders) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: "Internal server error" });
+    } else {
+      res.json({
+        userOrders: userOrders,
+      });
+    }
+  });
+};
 module.exports = {
   UserController,
   newUser,
   userNewOrder,
   deleteOrderFromCarts,
+  getOrdersForSpecificUser,
 };
