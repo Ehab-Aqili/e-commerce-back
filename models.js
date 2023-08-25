@@ -135,41 +135,45 @@ function addOrderDetail(orderID, productID, quantity, callback) {
   });
 }
 const deleteOrder = (userID, callback) => {
-
-  db.all('SELECT OrderID FROM orders WHERE UserID = ?', [userID], (err, orderIDs) => {
-    if (err) {
-      db.close();
-      return callback(err);
-    }
-    const orderCount = orderIDs.length;
-    let deletedCount = 0;
-    if (orderCount === 0) {
-      db.close();
-      return callback(null, `No orders found for User ID ${userID}`);
-    }
-    orderIDs.forEach((order) => {
-      const orderID = order.OrderID;
-      db.run('DELETE FROM order_details WHERE OrderID = ?', [orderID], (err) => {
-        if (err) {
-          db.close();
-          return callback(err);
-        }
-        db.run('DELETE FROM orders WHERE OrderID = ?', [orderID], (err) => {
-          if (err) {
-            db.close();
-            return callback(err);
+  db.all(
+    "SELECT OrderID FROM orders WHERE UserID = ?",
+    [userID],
+    (err, orderIDs) => {
+      if (err) {
+        return callback(err);
+      }
+      const orderCount = orderIDs.length;
+      let deletedCount = 0;
+      if (orderCount === 0) {
+        return callback(null, `No orders found for User ID ${userID}`);
+      }
+      orderIDs.forEach((order) => {
+        const orderID = order.OrderID;
+        db.run(
+          "DELETE FROM order_details WHERE OrderID = ?",
+          [orderID],
+          (err) => {
+            if (err) {
+              return callback(err);
+            }
+            db.run("DELETE FROM orders WHERE OrderID = ?", [orderID], (err) => {
+              if (err) {
+                return callback(err);
+              }
+              deletedCount++;
+              if (deletedCount === orderCount) {
+                callback(
+                  null,
+                  `Deleted ${deletedCount} orders for User ID ${userID}`
+                );
+              }
+            });
           }
-          deletedCount++;
-          if (deletedCount === orderCount) {
-            db.close();
-            callback(null, `Deleted ${deletedCount} orders for User ID ${userID}`);
-          }
-        });
+        );
       });
-    });
-  });
+    }
+  );
 };
-
 
 function getOrdersForUser(userID, callback) {
   // Your SQL query to retrieve orders and details for a specific user
