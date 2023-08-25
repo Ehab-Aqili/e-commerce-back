@@ -50,14 +50,15 @@ const userNewOrder = (req, res) => {
     }
   });
 };
+
 const deleteOrderFromCarts = (req, res) => {
-  const { orderID, userID } = req.body;
-  deleteOrder(orderID, userID, (err, orderID) => {
+  const { userID } = req.body; 
+  deleteOrder(userID, (err, result) => {
     if (err) {
       console.error(err);
       res.status(500).json({ error: "Internal server error" });
     } else {
-      res.json(`Delete Order From cart Successfuly ${orderID}`);
+      res.json(result);
     }
   });
 };
